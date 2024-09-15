@@ -1,22 +1,23 @@
 import { CreateConnection } from "@/libs/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import TodoModel, { ITodo } from '@/models/todo';
+import TodoModel from '@/models/todo';
+import { ITodo } from "@/app/Todo";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     await CreateConnection();
-    const todo = await TodoModel.find();
+    const todo = await TodoModel.find({});
     return NextResponse.json({
         status: 'success',
         code: 200,
         message: 'Todos fetched successfully',
-        todo
+        data: todo.filter((x) => x.status == false)
     });
 }
 
 export async function POST(req: NextRequest) {
     await CreateConnection();
     const new_todo: ITodo = await req.json();
-    if (!new_todo.name || !new_todo.description || !new_todo.status || !new_todo.dueDate) {
+    if (!new_todo.name || !new_todo.description || new_todo.status == undefined || !new_todo.dueDate) {
         return NextResponse.json({
             status: 'error',
             code: 400,
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
         status: 'success',
         code: 201,
-        todo
+        data: todo
     });
 }
 
@@ -47,25 +48,28 @@ export async function PUT(req: NextRequest) {
         status: 'success',
         code: 200,
         message: 'Todo updated successfully',
-        todo
+        data: todo
     });
 }
 
 export async function DELETE(req: NextRequest) {
     await CreateConnection();
-    const todo_name = req.nextUrl.searchParams.get('name');
-    if (!todo_name) {
+    const body = await req.json();
+    const { id } = body;
+    if (!id) {
         return NextResponse.json({
             status: 'error',
             code: 400,
             message: 'Missing required fields'
         });
     }
-    const todo = await TodoModel.findOneAndDelete({ name: todo_name });
+    const todo = await TodoModel.findById(id);
+    todo.status = true;
+    await todo.save();
     return NextResponse.json({
         status: 'success',
         code: 200,
         message: 'Todo deleted successfully',
-        todo
+        data: todo
     });
 }

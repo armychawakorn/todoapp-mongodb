@@ -1,6 +1,6 @@
 //make todo model mongoose schema
 
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const todoSchema = new Schema({
     name: String,
@@ -15,4 +15,4 @@ export interface ITodo {
     status: boolean;
     dueDate: string;
 }
-export default model('todos', todoSchema);
+export default mongoose.models.todos || model('todos', todoSchema);
