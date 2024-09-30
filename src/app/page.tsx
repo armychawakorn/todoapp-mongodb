@@ -11,6 +11,8 @@ export default function Home() {
   });
   const [todos, setTodos] = useState<ITodo[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Fetch all todos
   useEffect(() => {
     fetch('/api/v1/todo', {
       method: 'GET',
@@ -28,6 +30,7 @@ export default function Home() {
     });
   }, []);
 
+  // Add new todo
   function AddHandler() {
     const todo = {
       ...currentTodo,
@@ -51,18 +54,40 @@ export default function Home() {
       console.log(err);
     });
   }
-  function DoneHandler(index: number) {
+
+  // Update todo status
+  function DoneHandler(todo: ITodo) {
+    fetch('/api/v1/todo', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(todo)
+    }).then(res => res.json()).then(data => {
+      const effectedTodo_Id = data.data._id;
+      const newTodos = todos.map(todo => {
+        if (todo._id === effectedTodo_Id) {
+          return data.data;
+        }
+        return todo;
+      });
+      setTodos(newTodos);
+    })
+  }
+
+  // Delete todo
+  function DeleteHandler(todo: ITodo) {
     fetch('/api/v1/todo', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        id: todos[index]._id
+        id: todo._id
       })
-    }).then(() => {
-      const newTodos = [...todos];
-      newTodos.splice(index, 1);
+    }).then(res => res.json()).then(data => {
+      const effectedTodo_Id = data.data._id;
+      const newTodos = todos.filter(todo => todo._id !== effectedTodo_Id);
       setTodos(newTodos);
     }).catch(err => {
       console.log(err);
@@ -70,8 +95,8 @@ export default function Home() {
   }
   return (
     <>
-      <div className="grid sm:grid-cols-3 my-8">
-        <div className="border border-gray-400 p-8 rounded-lg sm:col-start-2">
+      <div className="grid sm:grid-cols-4 my-8">
+        <div className="border border-gray-400 p-8 rounded-lg sm:col-start-2 sm:col-span-2">
           <p className="text-2xl font-bold text-center">Todo App</p>
           <div className="flex justify-center">
             <div className="grid gap-y-2.5 w-full">
@@ -109,11 +134,20 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <hr className="m-6" />
+          <div className="grid gap-y-4 py-4">
+            <div className="grid grid-cols-7 gap-x-2 text-center font-bold">
+              <div className="col-span-1">ชื่อเรื่อง</div>
+              <div className="col-span-2">รายละเอียด</div>
+              <div className="col-span-1">สถานะ</div>
+              <div className="col-span-2">วันครบกำหนด</div>
+              <div className="col-span-1">จัดการ</div>
+            </div>
+          </div>
+          <hr />
           <div className="grid gap-y-4">
             {
               loading ? <p className="text-center">Loading...</p> : todos.length === 0 ? <p className="text-center">No todos</p> : todos.map((todo, index) => {
-                return <Todo key={index} todo={todo} todoIndex={index} donHandler={DoneHandler} />
+                return <Todo key={index} todo={todo} DoneHandler={DoneHandler} DeleteHandler={DeleteHandler} />
               })
             }
           </div>

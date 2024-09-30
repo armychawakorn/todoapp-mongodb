@@ -8,13 +8,13 @@ export interface ITodo {
     dueDate: string;
 }
 
-export default function Todo({ todo, todoIndex, donHandler }: { todo: ITodo, todoIndex: number, donHandler: (todoIndex: number) => void }) {
+export default function Todo({ todo, DoneHandler, DeleteHandler }: { todo: ITodo, DoneHandler: (todo: ITodo) => void, DeleteHandler: (todo: ITodo) => void }) {
     const timeConvert = (time: string) => {
         const date = new Date(time);
         return date.toLocaleString();
     }
     return (
-        <div className='grid grid-cols-7 hover:bg-slate-800 p-2 items-center rounded-xl text-center'>
+        <div className='grid grid-cols-7 hover:bg-slate-800 p-2 items-center rounded-xl text-center gap-2' style={{textDecoration: todo.status == false ? 'none' : 'line-through'}}>
             <div className='col-span-1'>
                 {todo.name}
             </div>
@@ -28,9 +28,15 @@ export default function Todo({ todo, todoIndex, donHandler }: { todo: ITodo, tod
                 {timeConvert(todo.dueDate)}
             </div>
             <div className='col-span-1'>
-                <button className="bg-blue-500 text-white rounded-lg p-2 w-full" onClick={(() => {
-                    donHandler(todoIndex);
-                })}>ลบ</button>
+                <div className="grid grid-rows gap-2">
+                    {
+                        todo.status == true ? <button className="bg-red-500 text-white rounded-lg p-2 w-full hover:bg-red-700" onClick={(() => {
+                            DeleteHandler(todo);
+                        })}>ลบ</button> : <button className="bg-blue-500 text-white rounded-lg p-2 w-full hover:bg-blue-700" onClick={(() => {
+                            DoneHandler(todo);
+                        })}>เสร็จแล้ว</button>
+                    }
+                </div>
             </div>
         </div>
     )

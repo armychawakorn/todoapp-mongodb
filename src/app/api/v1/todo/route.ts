@@ -10,7 +10,7 @@ export async function GET() {
         status: 'success',
         code: 200,
         message: 'Todos fetched successfully',
-        data: todo.filter((x) => x.status == false)
+        data: todo
     });
 }
 
@@ -36,14 +36,15 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
     await CreateConnection();
     const updated_todo: ITodo = await req.json();
-    if (!updated_todo.name || !updated_todo.description || !updated_todo.status || !updated_todo.dueDate) {
+    console.log(updated_todo);
+    if (!updated_todo.name || !updated_todo.description || !updated_todo.status == undefined || !updated_todo.dueDate) {
         return NextResponse.json({
             status: 'error',
             code: 400,
             message: 'Missing required fields'
         });
     }
-    const todo = await TodoModel.findOneAndUpdate({ name: updated_todo.name }, updated_todo, { new: true });
+    const todo = await TodoModel.findOneAndUpdate({_id: updated_todo._id}, { name: updated_todo.name, description: updated_todo.description, status: !updated_todo.status, dueDate: updated_todo.dueDate }, { new: true });
     return NextResponse.json({
         status: 'success',
         code: 200,
@@ -63,9 +64,7 @@ export async function DELETE(req: NextRequest) {
             message: 'Missing required fields'
         });
     }
-    const todo = await TodoModel.findById(id);
-    todo.status = true;
-    await todo.save();
+    const todo = await TodoModel.findOneAndDelete({ _id: id });
     return NextResponse.json({
         status: 'success',
         code: 200,
